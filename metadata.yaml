@@ -1,0 +1,19 @@
+name:  snap-db-redis
+summary: snap-db-redis
+maintainer: Chris Heckler <hecklerchris@hotmail.com>
+description: |
+  Simple layer that deploys a snap and relates to postgreSQL and Redis
+tags:
+  - webapp
+series:
+  - xenial
+resources:
+  flask-gunicorn-nginx:
+    type: file
+    filename: flask.snap
+    description: The snap being deployed
+requires:
+  pgsql:
+    interface: pgsql
+  redis:
+    interface: redis

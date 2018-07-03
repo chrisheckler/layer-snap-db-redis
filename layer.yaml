@@ -1,0 +1,12 @@
+includes: 
+  - 'layer:basic'
+  - 'layer:snap'
+  - 'interface:pgsql'
+  - 'interface:redis'
+options:
+  snap:
+    flask-gunicorn-nginx:
+      channel: stable
+      dangerous: true
+      classic:  true
+repo: "https://github.com/chrisheckler/layer-snap-db-redis"
