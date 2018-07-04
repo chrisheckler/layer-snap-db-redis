@@ -10,7 +10,7 @@ from charmhelpers.core.hookenv import status_set, log
 from charmhelpers.core import unitdata
 
 
-REDIS_OUT = '/home/ubunutu/redis_config.txt'
+REDIS_OUT = '/home/ubuntu/redis_config.txt'
 PGSQL_OUT = '/home/ubuntu/postgreSQL_config.txt'
 KV = unitdata.kv()
 
@@ -73,44 +73,48 @@ def output_database_config():
     db_config = KV.getrange('db')
 
     pgsql_config = \
-        'postgresql://{dbuser}:{dbpass}@{dbhost}:{dbport}/{dbname}\n'.format(**db_config)
+        'postgresql://{dbuser}:{dbpass}@{dbhost}:{dbport}/{dbname}'.format(**db_config)
 
     with open(PGSQL_OUT, 'a') as f:
         f.write(pgsql_config)
     
     log('PostgreSQL available')
-    status_set('active', 'Snap-db-redis postgreSQL config available')
+    status_set('active', pgsql_config)
     set_flag('snap-db-redis.config.available')
 
 
-@when('endpoint.redis.available')
-@when_not('endpoint.redis.configured')
-def get_redis_data(redis):
+@when('endpoint.redis.connected')
+@when_not('snap-db-redis.redis.available')
+def get_redis_data():
     """ Get redis data
     """
-
-    status_set('maintenance', 'Getting data')
-
-    for app in endpoint_from_flag(
-        'endpoint.redis.available').relation_data():
-        for redis_node in application['hosts']:
-            KV.set('redis_data_host', redis_node['hosts'])
-            KV.set('redis_data_port', int(redis_node['port']))
-            KV.set('redis_data_db', 0)
     
-    redis_data = endpoint_from_flag('endpoint.redis.available').relation_data()
+    status_set('maintenance', 'Getting snap-db-redis.redis')
+    redis = flag_from_endpoint('endpoint.redis.available')
+    redis.set_database('snap-db-redis.redis')
+
+    KV.set('rdhost', redis.host)
+    KV.set('rdport', redis.port)
+    KV.set('rddb', redis.databases)
+
+    status_set('active', 'Redis Config Written')
+    log('Redis Config Retrieved')
+    set_flag('snap-db-redis.redis.available') 
+
+@when('snap-db-redis.redis.available')
+@when_not('snap-db-redis.redis.config.available')
+def write_redis_data():    
+    status_set('maintenance', 'Writting redis config')
+    redis_config = KV.getrange('rd')
+    redis_db_config = \
+        'redis://{dbhost}:{dbport}/{rddb}'.format(**redis_config)
+
     with open(REDIS_OUT, 'a') as f:
-        f.write(str(redis_data.getitems()))
+        f.write(redis_db_config)
 
-    status_set('active', 'Redis Configured')
-    log('Redis Data Configured')
-    set_flag('endpoint.redis.configured')    
-    
-
-
-
-
-
+    status_set('active', redis_config)
+    log('Redis DB Config Available')
+    set_flag('snap-db-redis.redis.config.available') 
 
 
 
