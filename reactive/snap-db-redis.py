@@ -10,6 +10,11 @@ from charmhelpers.core.hookenv import status_set, log
 
 from charmhelpers.core import unitdata
 
+from charms.layer.snap-db-redis import (
+    SU_CONF_DIR,
+    render_flask_secrets,
+    start_restart
+)
 
 REDIS_OUT = '/home/ubuntu/redis_config.txt'
 PGSQL_OUT = '/home/ubuntu/postgreSQL_config.txt'
