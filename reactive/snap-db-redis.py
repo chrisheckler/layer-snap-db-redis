@@ -1,3 +1,5 @@
+import os
+
 from charms.reactive import (
     when,
     when_not,
@@ -8,12 +10,16 @@ from charms.reactive import (
 
 from charmhelpers.core.hookenv import status_set, log
 
+from charmhelpers.core.host import chownr
+
 from charmhelpers.core import unitdata
 
-from charms.layer.snap-db-redis import (
+from charms.layer.snap_db_redis import (
     SU_CONF_DIR,
     render_flask_secrets,
-    start_restart
+    load_template,
+    spew,
+    return_secrets,
 )
 
 REDIS_OUT = '/home/ubuntu/redis_config.txt'
@@ -29,7 +35,6 @@ def create_data_api_conf_dir():
     """
     if not os.path.isdir(SU_CONF_DIR):
         os.makedirs(SU_CONF_DIR, mode=0o644, exist_ok=True)
-    chownr(SU_CONF_DIR, owner='www-data', group='www-data')
     set_flag('pdl-api.conf.dir.available')
 
 
