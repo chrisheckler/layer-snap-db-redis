@@ -5,7 +5,7 @@ includes:
   - 'interface:redis'
 options:
   snap:
-    flask-gunicorn-nginx:
+   flask-gunicorn-nginx:
       channel: stable
       dangerous: true
       classic:  true

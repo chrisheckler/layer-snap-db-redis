@@ -6,11 +6,11 @@ description: |
 tags:
   - webapp
 series:
-  - xenial
+  - bionic
 resources:
   flask-gunicorn-nginx:
     type: file
-    filename: flask.snap
+    filename: flask-gunicorn-nginx_0.1_amd64.snap 
     description: The snap being deployed
 requires:
   pgsql:
