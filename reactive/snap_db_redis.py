@@ -1,5 +1,4 @@
 import os
-import os.path
 
 from charms.reactive import (
     when,
@@ -18,42 +17,30 @@ from charmhelpers.core.hookenv import (
     config,
 )
 
-from charmhelpers.core.host import chownr
+from charmhelpers.core.host import (
+    chownr,
+    service_stop,
+    service_start,
+    service_restart,
+    service_running,
+)
 
 from charmhelpers.core import unitdata
 
-from charms.layer.snap import install, refresh
-
 from charms.layer.snap_db_redis import (
     render_flask_secrets,
-    SU_CONF_DIR,
     FLASK_SECRETS,
 )
 
 
+HTTP_PORT = 5000
+FLASK_GUNICORN_SYSTEMD_SERVICE = 'snap.flask-gunicorn-nginx.flask-gunicorn'
 
-SNAP_DB_REDIS_HTTP_PORT = 5000
-
-REDIS_OUT = '/home/ubuntu/redis_config.txt'
-PGSQL_OUT = '/home/ubuntu/postgreSQL_config.txt'
 
 KV = unitdata.kv()
 
-############ Snap-db-redis Relations #############
+
 @when('snap.installed.flask-gunicorn-nginx')
-@when_not('snap-db-redis.conf.dir.available')
-def create_data_api_conf_dir():
-    """Ensure config dir exists
-    """
-    
-    if not os.path.isdir(SU_CONF_DIR):
-        os.makedirs(SU_CONF_DIR, mode=0o644, exist_ok=True)
-    chownr(SU_CONF_DIR, owner='www-data', group='www-data')
-
-    set_flag('snap-db-redis.conf.dir.available')
-
-@when('snap.installed.flask-gunicorn-nginx', 
-      'snap-db-redis.conf.dir.available')
 @when_not('snap-db-redis.secrets.available')
 def render_snap_db_redis_config():
     """ Write out secrets
@@ -76,17 +63,30 @@ def render_snap_db_redis_config():
 
 @when('snap-db-redis.secrets.available')
 @when_not('snap-db-redis.running')
-def set_active_status():
-    """Set status/open port
-    """
-    status_set('active', "Snap-db-redis is running")
-    open_port(SNAP_DB_REDIS_HTTP_PORT)
-
-    log('Snap-db-redis is Running')
+def restart_flask_application_to_pick_up_new_config():
+    status_set('maintenance', "Restarting application")
+    if service_running(FLASK_GUNICORN_SYSTEMD_SERVICE):
+        service_restart(FLASK_GUNICORN_SYSTEMD_SERVICE)
+    else:
+        service_stop(FLASK_GUNICORN_SYSTEMD_SERVICE)
+        service_start(FLASK_GUNICORN_SYSTEMD_SERVICE)
     set_flag('snap-db-redis.running')
-    clear_flag('snap-db-redis.secrets.available')
 
-############ PostgreSQL Relations ##############
+
+@when('snap-db-redis.running')
+@when_not('snap-db-redis.port.available')
+def open_flask_port():
+    open_port(HTTP_PORT)
+    set_flag('snap-db-redis.port.available')
+
+
+@when('snap-db-redis.running',
+      'snap-db-redis.port.available')
+def set_available_status():
+    status_set('active','APPLICATION AVAILABLE')
+
+
+########## PostgreSQL Relations ##############
 
 @when('pgsql.connected')
 @when_not('snap-db-redis.pgsql.requested')
@@ -172,6 +172,5 @@ def get_redis_data():
 @when('endpoint.redis.broken')
 def broken_flag_clear():
     clear_flag('snap-db-redis.redis.available')
-
 
 

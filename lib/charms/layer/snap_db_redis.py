@@ -9,9 +9,9 @@ from charmhelpers.core import unitdata
 from charmhelpers.core.hookenv import charm_dir
 
 
-SU_CONF_DIR = os.path.join('/', 'var', 'snap', 'flask-gunicorn-nginx', 'common', 'flask_secrets')
+SNAP_COMMON = os.path.join('/', 'var', 'snap', 'flask-gunicorn-nginx', 'common')
 
-FLASK_SECRETS = '/var/snap/flask-gunicorn-nginx/common/flask_secrets/flask_secrets.py'
+FLASK_SECRETS = os.path.join(SNAP_COMMON, 'flask_secrets', 'flask_secrets.py')
 
 
 kv = unitdata.kv()
@@ -34,7 +34,7 @@ def render_flask_secrets(secrets=None):
 
     # Spew configs into source
     spew(FLASK_SECRETS, app_yml)
-    os.chmod(os.path.dirname(SU_CONF_DIR), 0o755)
+    os.chmod(os.path.dirname(FLASK_SECRETS), 0o755)
 
 
 def load_template(name, path=None):
@@ -66,6 +66,5 @@ def return_secrets(secrets=None):
         secrets_mod = secrets
     else:
         secrets_mod = {}
-
 
     return secrets_mod
