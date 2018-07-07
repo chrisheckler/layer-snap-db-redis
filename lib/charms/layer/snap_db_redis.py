@@ -9,9 +9,9 @@ from charmhelpers.core import unitdata
 from charmhelpers.core.hookenv import charm_dir
 
 
-SU_CONF_DIR = os.path.join('/', 'home', 'ubuntu')
+SU_CONF_DIR = os.path.join('/', 'var', 'snap', 'flask-gunicorn-nginx', 'common', 'flask_secrets')
 
-FLASK_SECRETS = os.path.join(SU_CONF_DIR, 'flask_secrets.py')
+FLASK_SECRETS = '/var/snap/flask-gunicorn-nginx/common/flask_secrets/flask_secrets.py'
 
 
 kv = unitdata.kv()
@@ -54,7 +54,7 @@ def spew(path, data):
     :param str path: path of file to write to
     :param str data: contents to write
     """
-    with open(path, 'w') as f:
+    with open(path, 'w+') as f:
         f.write(data)
 
 
@@ -67,7 +67,5 @@ def return_secrets(secrets=None):
     else:
         secrets_mod = {}
 
-    secrets_mod['REDIS_HOST'] = kv.get('redis_host')
-    secrets_mod['REDIS_PORT'] = kv.get('redis_port')
 
     return secrets_mod
