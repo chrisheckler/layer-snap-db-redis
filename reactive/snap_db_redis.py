@@ -3,7 +3,7 @@ import os
 from charms.reactive import (
     when,
     when_not,
-    set_flag,
+g   set_flag,
     clear_flag,
     endpoint_from_flag,
     when_any,
@@ -108,7 +108,7 @@ def request_database():
       'snap-db-redis.pgsql.requested')
 @when_not('snap-db-redis.pgsql.available')
 def save_database_connection_info():
-    """Save the database connection info to the charm unitdata.
+    """ Save the database connection info to the charm unitdata.
     """
 
     status_set('maintenance',
@@ -140,12 +140,8 @@ def output_database_config():
         'postgresql://{dbuser}:{dbpass}@{dbhost}:{dbport}/{dbname}'.format(
             **db_config)
 
-
-    with open(PGSQL_OUT, 'a') as f:
-        f.write(pgsql_config)
-
-    log('PostgreSQL available')
-    status_set('active','Config file written' )
+    log(pgsql_config)
+    status_set('active','PostgreSQL configured')
     set_flag('snap-db-redis.debugging.config.available')
 
 

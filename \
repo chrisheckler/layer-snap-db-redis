@@ -1,0 +1,10 @@
+App Writes Flask config 
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'origin/master'.
+#
+# Changes to be committed:
+#	modified:   lib/charms/layer/snap_db_redis.py
+#	modified:   reactive/snap_db_redis.py
+#
