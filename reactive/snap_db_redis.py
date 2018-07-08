@@ -6,19 +6,15 @@ from charms.reactive import (
     set_flag,
     clear_flag,
     endpoint_from_flag,
-    when_any,
 )
 
 from charmhelpers.core.hookenv import (
     status_set,
     log,
-    network_get,
     open_port,
-    config,
 )
 
 from charmhelpers.core.host import (
-    chownr,
     service_stop,
     service_start,
     service_restart,
@@ -29,7 +25,6 @@ from charmhelpers.core import unitdata
 
 from charms.layer.snap_db_redis import (
     render_flask_secrets,
-    FLASK_SECRETS,
 )
 
 
@@ -46,17 +41,17 @@ def render_snap_db_redis_config():
     """ Write out secrets
     """
 
-    status_set('active','Rendering snap-db-redis config')
+    status_set('active', 'Rendering snap-db-redis config')
 
     ctxt = {
             "DEBUG": False,
             "TESTING": False,
             "SECRET_KEY": os.urandom(24),
             }
-    
+
     render_flask_secrets(ctxt)
 
-    status_set('active','Snap-db-redis config rendered')
+    status_set('active', 'Snap-db-redis config rendered')
     log('Snap_db_redis config rendered')
     set_flag('snap-db-redis.secrets.available')
 
@@ -83,10 +78,11 @@ def open_flask_port():
 @when('snap-db-redis.running',
       'snap-db-redis.port.available')
 def set_available_status():
-    status_set('active','APPLICATION AVAILABLE')
+    status_set('active', 'APPLICATION AVAILABLE')
 
 
-########## PostgreSQL Relations ##############
+"""    PostgreSQL Relations   """
+
 
 @when('pgsql.connected')
 @when_not('snap-db-redis.pgsql.requested')
@@ -140,16 +136,13 @@ def output_database_config():
         'postgresql://{dbuser}:{dbpass}@{dbhost}:{dbport}/{dbname}'.format(
             **db_config)
 
-
-    with open(PGSQL_OUT, 'a') as f:
-        f.write(pgsql_config)
-
-    log('PostgreSQL available')
-    status_set('active','Config file written' )
+    log(pgsql_config)
+    status_set('active', 'Config file written')
     set_flag('snap-db-redis.debugging.config.available')
 
 
-################ Redis Relations ######################
+"""    Redis Relations   """
+
 
 @when('endpoint.redis.available')
 @when_not('snap-db-redis.redis.available')
@@ -161,10 +154,7 @@ def get_redis_data():
 
     endpoint = endpoint_from_flag('endpoint.redis.available')
 
-    with open(REDIS_OUT, 'a') as f:
-        f.write((str(endpoint.relation_data()))) 
-
-    log(str(endpoint.relation_data())) 
+    log(str(endpoint.relation_data()))
     set_flag('snap-db-redis.redis.available')
     status_set('active', 'Redis Config Received')
 
@@ -172,5 +162,3 @@ def get_redis_data():
 @when('endpoint.redis.broken')
 def broken_flag_clear():
     clear_flag('snap-db-redis.redis.available')
-
-
