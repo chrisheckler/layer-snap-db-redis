@@ -88,7 +88,7 @@ def set_available_status():
 @when_not('snap-db-redis.pgsql.requested')
 def request_database():
     """When connection established to postgres,
-    request a database.
+       request a database.
     """
 
     status_set('maintenance', 'Requesting PostgreSQL database')
